@@ -1,0 +1,6 @@
+{
+  "name": "EdgeSkill Builder",
+  "description": "A mobile-ready companion for Google Edge Gallery. Build, port, and share AI skills for Gemma local models with seamless folder integration.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
