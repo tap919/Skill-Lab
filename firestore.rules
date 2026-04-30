@@ -1,0 +1,85 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidSkill(data) {
+      return data.keys().hasAll(['name', 'description', 'instructions', 'author', 'authorId', 'createdAt', 'updatedAt', 'tags', 'version', 'isPublic', 'examples'])
+        && data.name is string && data.name.size() <= 100
+        && data.description is string && data.description.size() <= 1000
+        && data.instructions is string && data.instructions.size() <= 20000
+        && data.author is string && data.author.size() <= 100
+        && data.authorId == request.auth.uid
+        && data.createdAt is int
+        && data.updatedAt is int
+        && data.tags is list && data.tags.size() <= 30
+        && data.examples is list && data.examples.size() <= 20
+        && data.version is string && data.version.size() <= 20
+        && data.isPublic is bool
+        && (data.keys().hasAll(['difficulty']) == false || data.difficulty is int)
+        && (data.keys().hasAll(['testScenarios']) == false || data.testScenarios is list)
+        && (data.keys().hasAll(['workflow']) == false || data.workflow is map)
+        && (data.keys().hasAll(['schedule']) == false || data.schedule is map)
+        && (data.keys().hasAll(['isVerified']) == false || data.isVerified is bool)
+        && (data.keys().hasAll(['securityScore']) == false || data.securityScore is int)
+        && (data.keys().hasAll(['authorEmail']) == false || data.authorEmail is string);
+    }
+
+    // --- Collection: Skills ---
+    match /skills/{skillId} {
+      allow get: if isSignedIn() && (resource.data.isPublic == true || resource.data.authorId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.isPublic == true || resource.data.authorId == request.auth.uid);
+
+      allow create: if isVerified() 
+        && isValidId(skillId) 
+        && isValidSkill(incoming())
+        && incoming().createdAt >= request.time.toMillis() - 120000 
+        && incoming().createdAt <= request.time.toMillis() + 120000; // Allow 2m drift
+
+      allow update: if isVerified()
+        && isOwner(existing().authorId)
+        && isValidSkill(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt >= request.time.toMillis() - 120000
+        && incoming().updatedAt <= request.time.toMillis() + 120000
+        && (
+          // Action: Edit
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'instructions', 'tags', 'version', 'isPublic', 'updatedAt', 'examples', 'difficulty', 'testScenarios', 'workflow', 'schedule', 'isVerified', 'securityScore', 'authorEmail'])
+        );
+
+      allow delete: if isVerified() && isOwner(existing().authorId);
+    }
+  }
+}

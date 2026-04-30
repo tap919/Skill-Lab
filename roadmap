@@ -1,0 +1,155 @@
+Now I have a complete picture of your repo and the Edge Gallery ecosystem. Here's a full assessment and roadmap.
+
+***
+
+## Current State of Skill Lab
+
+The app is a **React + TypeScript + Vite PWA**  with Firebase auth/Firestore for skill storage  and a mobile-first bottom nav. All AI work happens exclusively through a cloud Gemini API key in `src/services/aiSkillAgent.ts`  — every `proposeSkill`, `refineSkill`, `simulateSkill` and `analyzePhoneState` call hits `@google/genai` remotely. There is **zero local model awareness, zero on-device inference, and no phone scanning logic** anywhere in the codebase .
+
+The `types.ts` already has `schedule`, `workflow`, and `testScenarios` fields , and the agent is already designed around Gemma-optimized prompts and on-device hints  — so the intention was always there, the bridge just hasn't been built.
+
+***
+
+## The Core Technical Gap
+
+Edge Gallery does **not** expose a public HTTP API server — this is actually an open feature request on their GitHub. It runs Gemma using the **MediaPipe LLM Inference API** directly inside the Android/iOS app as a sandboxed process. You cannot simply call Edge Gallery's model from another app at runtime without a native bridge. [github](https://github.com/google-ai-edge/gallery/issues/552)
+
+You have two viable paths, and you should do **both**:
+
+| Layer | Path A — PWA/Web (short-term) | Path B — Native Android (full vision) |
+|---|---|---|
+| Runtime | `@mediapipe/tasks-genai` in browser | MediaPipe Android SDK via Capacitor |
+| Model source | User downloads `.task` file into OPFS | Reads Edge Gallery's model from shared storage |
+| Phone scanning | Web File System Access API | Native `File` + `ContentResolver` |
+| Release target | Runs today in Chrome on Android | Full Play Store app with Edge Gallery synergy |
+
+***
+
+## What Needs to Be Built (Prioritized)
+
+### 1. Model Provider Abstraction Layer
+**File to create: `src/services/modelProvider.ts`**
+
+This is the most important architectural change. All of `aiSkillAgent.ts` currently hardcodes the Gemini cloud client . You need a provider interface that can be swapped:
+
+```typescript
+export type ModelBackend = 'gemini-cloud' | 'gemma-local-web' | 'gemma-local-native';
+
+export interface ModelProvider {
+  generate(prompt: string, systemInstruction: string): Promise<string>;
+  generateStructured(prompt: string, schema: object): Promise<object>;
+  isAvailable(): Promise<boolean>;
+}
+```
+
+Then create `GeminiCloudProvider`, `GemmaWebProvider` (MediaPipe web), and `GemmaNativeProvider` (Capacitor) as separate implementations. `aiSkillAgent.ts` imports the active provider — never the SDK directly.
+
+***
+
+### 2. Phone Model Scanner
+**File to create: `src/services/localModelScanner.ts`**
+
+This scans for available on-device models. For the PWA path, it uses the **Web File System Access API** to let the user point to a downloaded `.task` file. For native, it scans `/sdcard/Android/data/com.google.ai.edge.gallery/` where Edge Gallery caches model files: [ai.google](https://ai.google.dev/gemma/docs/integrations/mobile)
+
+```typescript
+export interface LocalModelInfo {
+  name: string;
+  path: string;         // OPFS handle or native path
+  sizeGB: number;
+  source: 'edge_gallery' | 'manual';
+  isLoaded: boolean;
+}
+
+export async function scanForLocalModels(): Promise<LocalModelInfo[]>
+```
+
+The scan result feeds a new `'model'` view in `ViewMode`  that shows detected models with load/unload controls.
+
+***
+
+### 3. MediaPipe Web LLM Integration
+**Install: `npm install @mediapipe/tasks-genai`**
+
+The MediaPipe web package  runs on WebGPU in Chrome on Android. Once the user picks a `.task` model file: [ai.google](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference)
+
+```typescript
+import { LlmInference } from '@mediapipe/tasks-genai';
+
+const llm = await LlmInference.createFromOptions(wasmFileset, {
+  baseOptions: { modelAssetPath: modelUrl },
+  maxTokens: 512,
+  topK: 40,
+  temperature: 0.8,
+});
+
+const result = await llm.generateResponse(prompt);
+```
+
+This becomes your `GemmaWebProvider` implementation and directly replaces the Gemini SDK for on-device calls.
+
+***
+
+### 4. Capacitor Wrapper for Native Access
+**Install: `npm install @capacitor/core @capacitor/android`**
+
+Run `npx cap init` and `npx cap add android`. This converts the existing Vite PWA into a native Android app with zero code rewrite. Then add a Capacitor plugin that: [developers.googleblog](https://developers.googleblog.com/on-device-function-calling-in-google-ai-edge-gallery/)
+- Calls the Android MediaPipe `LlmInference` SDK directly
+- Reads Edge Gallery's model directory via `ContentResolver`
+- Returns streaming tokens back to the web layer via `notifyListeners`
+
+This is what gives you parity with Edge Gallery's actual runtime, not just the web approximation.
+
+***
+
+### 5. Skill Execution Engine
+**File to create: `src/services/skillExecutor.ts`**
+
+Right now `simulateSkill()` in `aiSkillAgent.ts` is the only "run a skill" function and it calls the cloud . You need a proper executor that:
+- Accepts a `Skill` object and user input
+- Routes to the active `ModelProvider` (local or cloud)
+- Handles streaming output token by token
+- Integrates with the existing `schedule` and `workflow` fields 
+- Logs runs to Firestore for analytics (feeds `analyzePhoneState`)
+
+***
+
+### 6. Settings + Model Status UI
+**Update: `src/components/Settings.tsx`**
+
+Add a "Local Model" section with:
+- A model scan button that calls `localModelScanner`
+- A list of detected models with source badges (`EDGE_GALLERY` vs `MANUAL`)
+- Active model selector that writes to a `localStorage` key
+- Live inference status (WebGPU supported, model loaded, token/s)
+- Toggle between `gemini-cloud` and `gemma-local` backends
+
+***
+
+### 7. Update `types.ts` for Local Model Awareness
+Add to `src/types.ts` :
+
+```typescript
+export type ViewMode = 'gallery' | 'builder' | 'settings' | 'import' | 'forge' | 'model';
+
+export interface LocalModel {
+  id: string;
+  name: string;         // e.g. "Gemma 3N 4B"
+  backend: 'mediapipe-web' | 'mediapipe-native';
+  path: string;
+  isActive: boolean;
+  tokensPerSecond?: number;
+}
+```
+
+***
+
+## Build Order
+
+1. `modelProvider.ts` abstraction — unblocks everything else
+2. `@mediapipe/tasks-genai` integration + `GemmaWebProvider`
+3. `localModelScanner.ts` + model picker in Settings
+4. `skillExecutor.ts` with routing logic
+5. Capacitor wrapper + native Android plugin for Edge Gallery file access
+6. `ViewMode` + Model Dashboard UI panel
+
+The app's architecture (React, Vite, Firebase, TypeScript) is clean and well-suited for this  — the majority of work is new files, not rewrites. The `aiSkillAgent.ts` functions stay intact but get their AI calls delegated to the provider layer .

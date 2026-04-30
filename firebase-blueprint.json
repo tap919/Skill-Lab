@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Skill": {
+      "title": "Skill",
+      "description": "An AI skill definition for Gemma models.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the skill" },
+        "description": { "type": "string", "description": "Brief summary of the skill" },
+        "systemPrompt": { "type": "string", "description": "The logic/instructions for the model" },
+        "examples": {
+          "type": "array",
+          "items": { "$ref": "#/entities/SkillExample" }
+        },
+        "author": { "type": "string", "description": "Display name of the creator" },
+        "authorId": { "type": "string", "description": "UID of the creator" },
+        "createdAt": { "type": "number", "format": "timestamp" },
+        "updatedAt": { "type": "number", "format": "timestamp" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "version": { "type": "string" },
+        "isPublic": { "type": "boolean" }
+      },
+      "required": ["name", "systemPrompt", "author", "authorId", "createdAt", "updatedAt"]
+    },
+    "SkillExample": {
+      "title": "SkillExample",
+      "description": "A few-shot learning example for a skill.",
+      "type": "object",
+      "properties": {
+        "input": { "type": "string" },
+        "output": { "type": "string" }
+      },
+      "required": ["input", "output"]
+    }
+  },
+  "firestore": {
+    "/skills/{skillId}": {
+      "schema": "Skill",
+      "description": "Collection of all AI skills."
+    }
+  }
+}
