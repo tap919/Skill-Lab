@@ -23,7 +23,9 @@ import {
   LogIn,
   LogOut,
   ShieldAlert,
-  User as UserIcon
+  User as UserIcon,
+  ArrowLeft,
+  Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -53,6 +55,8 @@ import { SkillBuilder } from './components/SkillBuilder';
 import { SkillImporter } from './components/SkillImporter';
 import { SkillForge } from './components/SkillForge';
 import { Settings } from './components/Settings';
+import { BettingAgent } from './components/BettingAgent';
+import { ScreenBrowserAgent } from './components/ScreenBrowserAgent';
 import { 
   auth, 
   db, 
@@ -543,6 +547,25 @@ export default function App() {
               <Settings onBack={() => setView('gallery')} />
             </motion.div>
           )}
+
+          {view === 'agent' && (
+            <motion.div
+              key="agent"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => setView('gallery')} className="rounded-none">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase italic">Agent Control</h2>
+              </div>
+              <ScreenBrowserAgent />
+              <BettingAgent />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -576,6 +599,13 @@ export default function App() {
           >
             <FolderInput className="w-5 h-5" />
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase">ADD</span>
+          </button>
+          <button 
+            onClick={() => setView('agent')}
+            className={`flex flex-col items-center gap-1 p-2 transition-colors ${view === 'agent' ? 'text-primary' : 'text-muted-foreground'}`}
+          >
+            <Bot className="w-5 h-5" />
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase">AGENT</span>
           </button>
           <button 
             onClick={() => setView('settings')}

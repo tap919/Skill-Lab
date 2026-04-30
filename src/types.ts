@@ -92,4 +92,4 @@ export interface SkillExample {
   output: string;
 }
 
-export type ViewMode = 'gallery' | 'builder' | 'settings' | 'import' | 'forge';
+export type ViewMode = 'gallery' | 'builder' | 'settings' | 'import' | 'forge' | 'agent';
