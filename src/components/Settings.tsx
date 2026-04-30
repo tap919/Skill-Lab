@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ExternalLink, HardDrive, Cpu, Terminal, Database, ShieldAlert, RotateCcw, Bot, Palette, Eye, Lock, Key, Wifi, Scan, Cpu as Chip, Smartphone, Globe } from 'lucide-react';
+import { ArrowLeft, ExternalLink, HardDrive, Cpu, Terminal, Database, ShieldAlert, RotateCcw, Bot, Palette, Eye, Lock, Key, Scan, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';

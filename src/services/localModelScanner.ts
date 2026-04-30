@@ -23,7 +23,7 @@ export async function scanLocalModels(): Promise<LocalModelCapabilities> {
 
   results.webnn = await detectWebNN();
 
-  results.wasm = typeof WebAssembly !== 'undefined' && WebAssembly.validate;
+  results.wasm = typeof WebAssembly !== 'undefined' && typeof (WebAssembly as any).validate === 'function';
 
   results.geminiNano = await detectGeminiNano();
 
@@ -41,9 +41,10 @@ export async function scanLocalModels(): Promise<LocalModelCapabilities> {
 }
 
 async function detectWebGPU(): Promise<{ supported: boolean; adapterInfo: string }> {
-  if (!navigator.gpu) return { supported: false, adapterInfo: 'No WebGPU' };
+  const nav = navigator as any;
+  if (!nav.gpu) return { supported: false, adapterInfo: 'No WebGPU' };
   try {
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = await nav.gpu.requestAdapter();
     if (!adapter) return { supported: false, adapterInfo: 'No adapter' };
     const info = adapter.info || {};
     const name = info.description || info.device || 'Unknown GPU';
