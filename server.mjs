@@ -38,7 +38,8 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(8080, '0.0.0.0', () => {
-  console.log('✅ Skill Lab running at http://localhost:8080');
+const PORT = process.env.PORT || 9000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Skill Lab running at http://localhost:${PORT}`);
   console.log('   Press Ctrl+C to stop');
 });

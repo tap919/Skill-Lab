@@ -7,7 +7,25 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Skill, SkillExample } from "../types";
 import { generateId } from "../lib/id";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+let _ai: GoogleGenAI | null = null;
+
+function getClient(): GoogleGenAI {
+  if (!_ai) {
+    const key = process.env.GEMINI_API_KEY || getStoredApiKey('gemini') || '';
+    if (!key) throw new Error('Gemini API key not set. Go to Settings → 05_APIS to add one.');
+    _ai = new GoogleGenAI({ apiKey: key });
+  }
+  return _ai;
+}
+
+function getStoredApiKey(service: string): string | null {
+  try {
+    const keys = JSON.parse(localStorage.getItem('api_keys') || '{}');
+    return keys[service] || null;
+  } catch {
+    return null;
+  }
+}
 
 export interface SkillProposal {
   name: string;
@@ -102,7 +120,7 @@ const SKILL_PROPOSAL_SCHEMA = {
 
 export async function proposeSkill(userIntent: string): Promise<SkillProposal> {
   try {
-    const response = await ai.models.generateContent({
+    const response = await getClient().models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `Architect a specialized AI skill based on this intent: "${userIntent}". 
       The skill should be designed for the Gemma local model family. 
@@ -140,7 +158,7 @@ export async function proposeSkill(userIntent: string): Promise<SkillProposal> {
 
 export async function refineSkill(current: SkillProposal, feedback: string): Promise<SkillProposal> {
   try {
-    const response = await ai.models.generateContent({
+    const response = await getClient().models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
         { text: `Current Proposal: ${JSON.stringify(current)}` },
@@ -165,7 +183,7 @@ export async function refineSkill(current: SkillProposal, feedback: string): Pro
 }
 
 export async function simulateSkill(instructions: string, examples: any[], userInput: string): Promise<string> {
-  const response = await ai.models.generateContent({
+  const response = await getClient().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `${instructions}\n\nTypical Examples:\n${JSON.stringify(examples)}\n\nUser Question: ${userInput}`,
     config: {
@@ -179,7 +197,7 @@ export async function simulateSkill(instructions: string, examples: any[], userI
 }
 
 export async function synthesizeEntropySkill(seeds: { domain: string, capability: string, constraint: string }): Promise<SkillProposal> {
-  const response = await ai.models.generateContent({
+  const response = await getClient().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `SYNTHESIS TARGET:
 Domain: ${seeds.domain}
@@ -356,7 +374,7 @@ export async function autoRefineFromFeedback(
 }
 
 export async function analyzePhoneState(analytics: any): Promise<string> {
-  const response = await ai.models.generateContent({
+  const response = await getClient().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `PHONE ANALYTICS DATA:
 ${JSON.stringify(analytics, null, 2)}
@@ -372,7 +390,7 @@ Respond with a concise, 100-character max recommendation of a new skill to build
 }
 
 export async function synthesizePhoneSkill(recommendation: string, context: any): Promise<SkillProposal> {
-  const response = await ai.models.generateContent({
+  const response = await getClient().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `RECOMMENDATION: ${recommendation}
 CONTEXT: ${JSON.stringify(context)}

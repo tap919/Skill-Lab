@@ -41,12 +41,8 @@ export function SkillCard({
     URL.revokeObjectURL(url);
   };
 
-  const exportForEdgeGallery = async () => {
-    await downloadSkillForEdgeGallery(skill);
-  };
-
-  const exportSkillMd = () => {
-    const { files } = exportSkillForEdgeGallery(skill);
+  const exportForEdgeGallery = () => {
+    const { files, folderName } = exportSkillForEdgeGallery(skill);
     const skillMdFile = files.find(f => f.path === 'SKILL.md');
     if (!skillMdFile) return;
 
@@ -54,7 +50,36 @@ export function SkillCard({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'SKILL.md';
+    a.download = `${folderName}_SKILL.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    if (skill.edgeGallery?.isJsSkill) {
+      setTimeout(() => {
+        const jsFile = files.find(f => f.path === 'scripts/index.html');
+        if (jsFile) {
+          const jsBlob = new Blob([jsFile.content], { type: 'text/html' });
+          const jsUrl = URL.createObjectURL(jsBlob);
+          const jsA = document.createElement('a');
+          jsA.href = jsUrl;
+          jsA.download = `${folderName}_index.html`;
+          jsA.click();
+          URL.revokeObjectURL(jsUrl);
+        }
+      }, 500);
+    }
+  };
+
+  const exportSkillMd = () => {
+    const { files, folderName } = exportSkillForEdgeGallery(skill);
+    const skillMdFile = files.find(f => f.path === 'SKILL.md');
+    if (!skillMdFile) return;
+
+    const blob = new Blob([skillMdFile.content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${folderName}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
