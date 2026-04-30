@@ -1,20 +1,69 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<img width="1000" height="420" alt="Skill Lab - AI Skill Forge for Google Edge Gallery" src="https://raw.githubusercontent.com/tap919/Skill-Lab/main/docs/screenshots/og-image.png" onerror="this.style.display='none';this.parentElement.innerHTML='<h1 style=\'font-size:3rem;\'>⚡ Skill Lab</h1>'">
 </div>
 
-# Run and deploy your AI Studio app
+<div align="center">
 
-This contains everything you need to run your app locally.
+[![Download APK](https://img.shields.io/github/v/release/tap919/Skill-Lab?include_prereleases&label=Download&style=for-the-badge)](https://github.com/tap919/Skill-Lab/releases/latest/download/app-debug.apk)
+[![GitHub Stars](https://img.shields.io/github/stars/tap919/Skill-Lab?style=flat)](https://github.com/tap919/Skill-Lab/stargazers)
+[![License](https://img.shields.io/github/license/tap919/Skill-Lab?style=flat)](LICENSE)
 
-View your app in AI Studio: https://ai.studio/apps/64927b4f-bfb3-4f3b-952c-950d98fdd17e
+</div>
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## ⚡ What is Skill Lab?
 
+Skill Lab is an AI skill forge for [Google AI Edge Gallery](https://edgegallery.google/). Create, test, and export AI skills that run on your Android phone.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Features
+
+- **Zero-Config Auto Forge** — Single function chains: propose → test → verify → secure
+- **Phone-Aware Auto-Creation** — Real OS telemetry (battery, network, geolocation)
+- **Self-Evolving Skills** — Usage analytics and feedback collection
+- **Edge Gallery Export** — SKILL.md format with kebab-case naming
+- **Native Android** — Capacitor app with 5 native plugins
+
+### Getting Started
+
+```bash
+# Clone the repo
+git clone https://github.com/tap919/Skill-Lab.git
+cd Skill-Lab
+
+# Install dependencies
+npm install
+
+# Build web app
+npm run build
+
+# Add Android platform
+npx cap add android
+
+# Build APK
+npm run android:build
+```
+
+Or just [download the latest APK](https://github.com/tap919/Skill-Lab/releases) and install on your phone.
+
+### Tech Stack
+
+- **Frontend**: React + Vite + Tailwind CSS
+- **Backend**: Firebase Auth + Firestore
+- **AI**: Google Gemini API
+- **Mobile**: Capacitor (Android native)
+- **CI/CD**: GitHub Actions
+
+### Support
+
+- 💸 **Donate**: [CashApp $helptools](https://cash.app/$helptools)
+- 📧 **Email**: [tap4500@gmail.com](mailto:tap4500@gmail.com)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/tap919/Skill-Lab/issues)
+
+---
+
+<div align="center">
+
+[Download APK](https://github.com/tap919/Skill-Lab/releases/latest/download/app-debug.apk) • [Docs](docs/) • [Changelog](docs/CHANGELOG.md)
+
+</div>

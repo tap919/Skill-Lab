@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Lab — AI Skill Forge for Google Edge Gallery</title>
+  <meta name="description" content="Create, test, and export AI skills for Google AI Edge Gallery. Zero-config auto-forge, phone-aware automation, self-evolving skills.">
+  <meta property="og:title" content="Skill Lab — AI Skill Forge">
+  <meta property="og:description" content="Create AI skills that run on your phone. Download the APK or build from source.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/tap919/Skill-Lab/main/docs/screenshots/og-image.png">
+  <meta property="og:url" content="https://tap919.github.io/Skill-Lab">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --bg-card: #111113;
+      --fg: #fafafa;
+      --fg-muted: #a1a1a6;
+      --primary: #22c55e;
+      --primary-dim: #16a34a;
+      --accent: #f59e0b;
+      --border: #27272a;
+      --gradient-1: #22c55e;
+      --gradient-2: #14b8a6;
+      --gradient-3: #0ea5e9;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+    
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10,10,11,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--gradient-2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      color: var(--fg-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta {
+      background: var(--primary);
+      color: #000;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .nav-cta:hover { background: var(--primary-dim); }
+    
+    /* Hero */
+    .hero {
+      padding: 10rem 0 6rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: 50%;
+      width: 120%;
+      height: 200%;
+      background: radial-gradient(ellipse at center, rgba(34,197,94,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.75rem;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+      margin-bottom: 1.5rem;
+    }
+    .hero-badge span { color: var(--primary); font-weight: 600; }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin: 0 0 1.5rem;
+      letter-spacing: -0.03em;
+    }
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--fg-muted);
+      max-width: 560px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #000;
+    }
+    .btn-primary:hover { background: var(--primary-dim); transform: translateY(-2px); }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--fg);
+    }
+    .btn-secondary:hover { border-color: var(--fg-muted); }
+    
+    /* Features */
+    .features { padding: 5rem 0; }
+    .features h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin: 0 0 3rem;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: var(--fg-muted); }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(34,197,94,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .feature-card h3 {
+      font-size: 1.1rem;
+      margin: 0 0 0.5rem;
+    }
+    .feature-card p {
+      color: var(--fg-muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    
+    /* Screenshots */
+    .screenshots { padding: 5rem 0; }
+    .screenshots h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin: 0 0 1rem;
+    }
+    .screenshots > .container > p {
+      text-align: center;
+      color: var(--fg-muted);
+      margin-bottom: 2.5rem;
+    }
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .screenshot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .screenshot-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .screenshot-card p {
+      padding: 1rem;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    
+    /* Donate */
+    .donate {
+      padding: 5rem 0;
+      background: linear-gradient(180deg, var(--bg) 0%, rgba(34,197,94,0.05) 50%, var(--bg) 100%);
+    }
+    .donate-card {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+      background: var(--bg-card);
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      padding: 2.5rem;
+    }
+    .donate-card h2 { margin: 0 0 1rem; }
+    .donate-card p { color: var(--fg-muted); margin: 0 0 1.5rem; }
+    .cashapp {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      word-break: break-all;
+    }
+    .email {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--fg-muted);
+    }
+    .email a { color: var(--primary); }
+    
+    /* Install */
+    .install { padding: 5rem 0; }
+    .install h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin: 0 0 1rem;
+    }
+    .install > .container > p {
+      text-align: center;
+      color: var(--fg-muted);
+      margin-bottom: 2.5rem;
+    }
+    .install-steps {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .step {
+      display: flex;
+      gap: 1rem;
+      padding: 1.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+    .step p { margin: 0; font-size: 0.9rem; color: var(--fg-muted); }
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    
+    /* Footer */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--fg-muted);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--fg-muted); }
+    footer a:hover { color: var(--primary); }
+    
+    /* Mobile nav */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <nav>
+        <a href="/" class="logo">
+          <div class="logo-icon">⚡</div>
+          Skill Lab
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#screenshots">Screenshots</a>
+          <a href="#install">Install</a>
+          <a href="#donate">Donate</a>
+        </div>
+        <a href="https://github.com/tap919/Skill-Lab/releases/latest/download/app-debug.apk" class="nav-cta">Download APK</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        ⚡ Open Source — <span>v1.0.0</span> Released
+      </div>
+      <h1>AI Skill Forge for<br><span class="gradient">Google Edge Gallery</span></h1>
+      <p>Create, test, and export AI skills that run on your phone. Zero-config auto-forge, phone-aware automation, self-evolving skills.</p>
+      <div class="hero-buttons">
+        <a href="https://github.com/tap919/Skill-Lab/releases/latest/download/app-debug.apk" class="btn btn-primary">
+          ⬇ Download APK
+        </a>
+        <a href="#install" class="btn btn-secondary">
+          📱 Install Guide
+        </a>
+        <a href="https://github.com/tap919/Skill-Lab" class="btn btn-secondary">
+          ★ Star on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <h2>What's Inside</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Zero-Config Auto Forge</h3>
+          <p>Single function chains: propose → test → verify → secure. Auto-detects JS vs text skills, generates test scenarios, security scoring.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Phone-Aware Auto-Creation</h3>
+          <p>Real OS telemetry: battery, network, screen, geolocation. Gap detection suggests skills based on your usage patterns.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>Self-Evolving Skills</h3>
+          <p>Usage analytics, feedback collection, auto-refine. Skills improve based on real usage data.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <h3>Edge Gallery Export</h3>
+          <p>Export to SKILL.md format with kebab-case naming. Configure run_js or run_intent tools.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Security Built In</h3>
+          <p>Leak/smell detection, security scoring, secrets handling for API keys and tokens.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔌</div>
+          <h3>Native Android Plugins</h3>
+          <p>Geolocation, network, filesystem, clipboard, status-bar. Full native capability via Capacitor.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screenshots" id="screenshots">
+    <div class="container">
+      <h2>See It In Action</h2>
+      <p>Screenshots from the running Android app</p>
+      <div class="screenshot-grid">
+        <div class="screenshot-card">
+          <img src="screenshots/home.png" alt="Skill Directory" loading="lazy" onerror="this.style.display='none'">
+          <p>📁 <strong>Skill Directory</strong> — Browse and manage your AI skills</p>
+        </div>
+        <div class="screenshot-card">
+          <img src="screenshots/forge.png" alt="Skill Forge AI Chat" loading="lazy" onerror="this.style.display='none'">
+          <p>⚡ <strong>Skill Forge</strong> — AI-powered skill creation</p>
+        </div>
+        <div class="screenshot-card">
+          <img src="screenshots/builder.png" alt="Skill Builder" loading="lazy" onerror="this.style.display='none'">
+          <p>🔨 <strong>Skill Builder</strong> — Fine-tune every detail</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="donate" id="donate">
+    <div class="container">
+      <div class="donate-card">
+        <h2>☕ Support Development</h2>
+        <p>If Skill Lab is useful to you, consider buying me a coffee. Every donation helps keep the project alive.</p>
+        <div class="cashapp">$helptools</div>
+        <p class="email">
+          Questions? <a href="mailto:tap4500@gmail.com">tap4500@gmail.com</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="install" id="install">
+    <div class="container">
+      <h2>How to Install</h2>
+      <p>Three ways to get Skill Lab on your device</p>
+      <div class="install-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <h3>Download APK</h3>
+            <p>Get the latest APK from <a href="https://github.com/tap919/Skill-Lab/releases">GitHub Releases</a></p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <h3>Enable Install from Unknown Sources</h3>
+            <p>Settings → Security → Unknown Sources → Allow (or during install if prompted)</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <h3>Install & Open</h3>
+            <p>Tap the APK file → Install → Open. That's it!</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">+</div>
+          <div>
+            <h3>Build from Source (Developer)</h3>
+            <p><code>git clone</code> → <code>npm install</code> → <code>npm run android:build</code></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>
+        ⚡ Skill Lab — <a href="https://github.com/tap919/Skill-Lab">GitHub</a> — 
+        <a href="https://github.com/tap919/Skill-Lab/releases">Releases</a> — 
+        <a href="https://github.com/tap919/Skill-Lab/releases/latest/download/app-debug.apk">Download APK</a>
+      </p>
+      <p style="margin-top: 0.5rem; opacity: 0.6;">
+        Made with ⚡ by <a href="mailto:tap4500@gmail.com">@tap4500</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
